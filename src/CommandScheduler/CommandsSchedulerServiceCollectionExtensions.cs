@@ -5,17 +5,17 @@ using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Data.SqlClient;
+using System.Reflection;
 
 namespace CommandScheduler
 {
     public static class CommandsSchedulerServiceCollectionExtensions
     {
-        public static IServiceCollection AddCommandsScheduler(this IServiceCollection services, string hangfireConnection, params Type[] handlerAssemblyMarkerTypes)
+        public static IServiceCollection AddCommandsScheduler(this IServiceCollection services, string hangfireConnection, params Assembly[] handlerAssemblies)
         {
             services.AddScoped<CommandsExecutor>();
             services.AddScoped<AsyncCommand>();
-
-
+            
             // Add Hangfire services.
             services.AddHangfire(configuration => configuration
                 .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
@@ -33,7 +33,7 @@ namespace CommandScheduler
             // Add the processing server as IHostedService
             services.AddHangfireServer();
 
-            services.AddMediatR(handlerAssemblyMarkerTypes);
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(handlerAssemblies));
 
             return services;
         }
